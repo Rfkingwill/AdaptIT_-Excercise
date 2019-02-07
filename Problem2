@@ -1,0 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AdaptIT_CodingExercise {
+    class Problem2 {
+
+        public  int Id { get; set; }
+        public  int ParentID { get; set; }
+        public  string Name { get; set; }
+        public  List<string> reportToList = new List<string>(); //make global list to populate later
+
+         //question unclear was I supposed to get data from somewhere else or use given example
+        //so used example given to create tempory table for function to test
+        public static DataTable employeeTable = new DataTable();//declare just for this class
+        public static void addHierarchicalData()                //populates table with given example from question paper
+        {
+            employeeTable.Columns.Add("Id", typeof(Int32));
+            employeeTable.Columns.Add("ParentId", typeof(Int32));
+            employeeTable.Columns.Add("Name", typeof(String));
+            employeeTable.Rows.Add(new Object[] { 1, 0, "Joe" });
+            employeeTable.Rows.Add(new Object[] { 2, 1, "Harry" });
+            employeeTable.Rows.Add(new Object[] { 3, 2, "Chang" });
+            employeeTable.Rows.Add(new Object[] { 4, 2, "Mary" });
+            employeeTable.Rows.Add(new Object[] { 5, 4, "Alfonse" });
+        }
+
+        //**********************************************************************************************************************
+
+        // fuction returns all employees that report to "Empoyee entered" all the way down the .
+        public static string GetHierarchicalEmployees(string InputName)
+        {
+            Problem2 Employees = new Problem2();
+                                                                            //find name matching input in table
+            var result = from row in employeeTable.AsEnumerable()
+                         where row.Field<string>("Name").ToLower() == InputName.ToLower().Trim()
+                         select row;
+            
+            if (result.Any()==false)                                      //if fail to find name matching input, return this message 
+            {
+                return "Sorry, no users matching that name found!";
+            }
+                                                                          //capture employee details matching entry
+            foreach (var R in result)
+            {
+                Employees.Id = (int)R["Id"];
+                Employees.Name = R["Name"].ToString();
+            }
+
+            if (Employees.GetChildren(Employees.Id)) ;                    //call recursion method to get all children passing id in the whole time
+
+            string reportList = string.Join(",", Employees.reportToList);//join list together to give you output string 
+            if (String.IsNullOrWhiteSpace(reportList))                   //if list was empty return this message 
+            {
+                reportList = "No employees report to " + Employees.Name; // this shows the employee existed but has no one reporting to them
+            }
+
+            return reportList;
+        }//GetHierarchicalEmployees
+
+        //**********************************************************************************************************************
+
+        //private method getting all children per id passed adding them to list as it goes
+        private bool GetChildren(int parentId)
+        {                                                               //get employees that report to current id
+            var employee = from emp in employeeTable.AsEnumerable()
+                           where emp.Field<int>("ParentId") == parentId
+                           select emp;
+            if(employee.Any() == false)                                 //fail safe if nothing is found 
+            {
+                return false;
+            }
+
+            foreach (var E in employee)
+            {
+                reportToList.Add(E["Name"].ToString());                 //add to global list as condition met
+                GetChildren((int)E["Id"]);                              //calls itself/recursion for each id found,
+            }                                                           //getting all employees that report to current id
+            return true;
+        }//end GetChildren
+
+    } //end Problem2
+}//AdaptIT_CodingExercise
