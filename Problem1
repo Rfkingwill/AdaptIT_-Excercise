@@ -1,0 +1,94 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace AdaptIT_CodingExercise {
+    class Program {
+
+        //Problem 1 
+        static void Main(string[] args)
+        {
+
+            Console.WriteLine("Welcome to search console");
+            Console.WriteLine("Please enter letter or word on one line to search from system items?");
+
+            try
+            {
+                SearchClass searchFunction = new SearchClass();
+
+                string strInput = Console.ReadLine();
+                if (String.IsNullOrEmpty(strInput)) { return; }             //returns if nothing was entered
+                strInput = Regex.Replace(strInput, "[^A-Za-z0-9 _]", " "); //takes out all non alphanumeric characters
+                string result = searchFunction.GetMatches(strInput);
+                Console.WriteLine();
+                Console.WriteLine("Result:");
+                Console.WriteLine(result);
+
+            }
+            catch (Exception ex)                                        // if something throws exception,
+            {                                                           // catch error but no need to display because hard to read on cmd prompt.
+                Console.WriteLine("Error occured! Please check input?");
+            }
+            finally
+            {
+                                                                     // Keep the console window open in debug mode.
+                Console.WriteLine();
+                Console.WriteLine("Press any key to exit");
+                Console.ReadKey();
+            }
+
+        }//end main
+    }// end programe class
+
+
+    class SearchClass {
+
+        //add given system items to list ---instructions were unclear if this is actualy names of items or was suppose to get list from somewhere else.  
+        public List<string> itemsInSyestem = new List<string> { "Users", "User Groups", "User Activity Log", "Report Designer", "Report Activity Log" };
+
+        public string GetMatches(string searchString) 
+        {
+            List<string> matches = new List<string>();
+            String[] strArr = searchString.ToLower().Split();       //puts input string into lowercase and seperates into array via spaces
+            bool matchesAllInput = false;
+
+            foreach (string item in itemsInSyestem)                 //checks each item in system list
+            {
+                matchesAllInput = false;                             //has to match all pieces and not just one so make false at beginning
+                foreach (string str in strArr)                       //checks each piece of string in input
+                {
+                    if (item.ToLower().Contains(str))               //if contains that pieces of string ,also makes system item lowercase
+                    {
+                        matchesAllInput = true;                     //mark true for so far and continue through input
+                        continue;
+                    }
+                    else
+                    {
+                        matchesAllInput = false;                     // if doesnt contain input piece , then mark false to be ignored
+                        break;                                      //break out of loop and dont need to continue checking
+                    }
+                }//end foreach
+
+                if (matchesAllInput)                                //if matched all input, add it to list to be returned
+                {
+                    matches.Add(item);
+                }
+            }//end foreach
+
+            /*would of tried LINQ query for speed but was'nt sure 
+             if needed to be any part of word so "where" clause bit complicated.  
+
+               var result = from item in itemsInSyestem
+                            where item.StartsWith(inputStr,true,null) 
+                            select item;
+            */
+
+            return string.Join(",",matches);                            //joins list created to single string 
+
+        } //GetMatches
+              
+    }//SearchClass 
+}//AdaptIT_CodingExercise
